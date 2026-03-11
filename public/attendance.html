@@ -490,7 +490,7 @@ navigator.geolocation.getCurrentPosition(async function(pos){
 let lat = pos.coords.latitude
 let lng = pos.coords.longitude
 
-let res = await fetch("http://localhost:3000/checkin",{
+let res = await fetch("/checkin",{
 method:"POST",
 headers:{
 "Content-Type":"application/json"
@@ -531,7 +531,7 @@ navigator.geolocation.getCurrentPosition(async function(pos){
 let lat = pos.coords.latitude
 let lng = pos.coords.longitude
 
-let res = await fetch("http://localhost:3000/checkout",{
+let res = await fetch("/checkout",{
 method:"POST",
 headers:{
 "Content-Type":"application/json"
@@ -576,7 +576,7 @@ async function loadAttendance(){
 
 try{
 
-let res = await fetch("http://localhost:3000/attendance")
+let res = await fetch("/attendance")
 
 let data = await res.json()
 

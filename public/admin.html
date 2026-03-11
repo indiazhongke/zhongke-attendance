@@ -356,7 +356,7 @@
 
       async function loadAttendance() {
         try {
-          let res = await fetch("http://localhost:3000/attendance");
+          let res = await fetch("/attendance");
           let data = await res.json();
 
           globalData = data;
@@ -463,7 +463,7 @@ SUMMARY
       function addEmployee() {
         let name = document.getElementById("newEmployee").value;
 
-        fetch("http://localhost:3000/employees", {
+        fetch("/employees", {
           method: "POST",
 
           headers: {
@@ -525,7 +525,7 @@ SUMMARY
       }
 
       function exportExcel() {
-        fetch("http://localhost:3000/attendance")
+        fetch("/attendance")
           .then((res) => res.json())
           .then((data) => {
             let employeeSummary = {};
@@ -588,7 +588,7 @@ SUMMARY
       }
 
       async function loadDashboard() {
-        let res = await fetch("http://localhost:3000/dashboard");
+        let res = await fetch("/dashboard");
 
         let data = await res.json();
 
@@ -604,7 +604,7 @@ FILTER FUNCTIONS (Dashboard Cards)
 ===================== */
 
       function showEmployees() {
-        fetch("http://localhost:3000/employees")
+        fetch("/employees")
           .then((res) => res.json())
           .then((data) => {
             let table = document.getElementById("attendanceTable");
@@ -627,7 +627,7 @@ FILTER FUNCTIONS (Dashboard Cards)
       }
 
       function deleteEmployee(id) {
-        fetch("http://localhost:3000/employees/" + id, {
+        fetch("/employees/" + id, {
           method: "DELETE",
         }).then(() => {
           alert("Employee Deleted");
@@ -687,7 +687,7 @@ FILTER FUNCTIONS (Dashboard Cards)
 
       function showAbsent() {
         // Show all employees from Employee collection who are not present today
-        fetch("http://localhost:3000/employees")
+        fetch("/employees")
           .then((res) => res.json())
           .then((employees) => {
             let today = new Date().toISOString().split("T")[0];
