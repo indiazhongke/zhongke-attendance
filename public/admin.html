@@ -1,0 +1,734 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Admin Attendance Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="manifest" href="attendance-crm/manifest.json" />
+    <link rel="icon" type="icon" href="favicon.ico">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+      /* ==============================
+   FONT
+================================*/
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap");
+
+      /* ==============================
+   VARIABLES
+================================*/
+      :root {
+        --color-primary: #2563eb;
+        --color-primary-hover: #1d4ed8;
+
+        --color-border: #e5e7eb;
+        --color-text: #374151;
+        --color-muted: #6b7280;
+
+        --color-bg: #f3f4f6;
+        --color-white: #ffffff;
+
+        --radius-sm: 6px;
+        --radius-md: 8px;
+
+        --space-xs: 6px;
+        --space-sm: 10px;
+        --space-md: 16px;
+        --space-lg: 24px;
+
+        --container-width: 900px;
+      }
+
+      /* ==============================
+   RESET
+================================*/
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background: var(--color-bg);
+        color: var(--color-text);
+        padding: 40px;
+        line-height: 1.6;
+        font-size: 14px;
+      }
+
+      /* ==============================
+   LAYOUT
+================================*/
+      .container {
+        max-width: var(--container-width);
+        margin: auto;
+        background: var(--color-white);
+        padding: 28px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--color-border);
+      }
+
+      /* ==============================
+   HEADER
+================================*/
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-lg);
+      }
+
+      /* ==============================
+   FILTERS
+================================*/
+      .filters {
+        max-width: var(--container-width);
+        margin: 0 auto var(--space-lg);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-md);
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+        min-width: 160px;
+      }
+
+      .filter-group label {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--color-muted);
+        margin-bottom: var(--space-xs);
+      }
+
+      .filter-group select {
+        padding: 8px 10px;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        font-family: inherit;
+        font-size: 13px;
+        background: var(--color-white);
+      }
+
+      .filter-group select:focus {
+        outline: none;
+        border-color: var(--color-primary);
+      }
+
+      /* ==============================
+   BUTTONS
+================================*/
+      button {
+        padding: 8px 14px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--color-primary);
+        background: var(--color-primary);
+        color: white;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--color-primary-hover);
+      }
+
+      /* ==============================
+   DASHBOARD
+================================*/
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--space-md);
+        margin-bottom: var(--space-lg);
+      }
+
+      /* ==============================
+   CARDS
+================================*/
+      .card {
+        background: var(--color-white);
+        padding: 20px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--color-border);
+      }
+
+      .card h3 {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-muted);
+        margin-bottom: 6px;
+      }
+
+      .card p {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--color-text);
+      }
+
+      /* ==============================
+   TABLE
+================================*/
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: var(--space-md);
+      }
+
+      thead th {
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 10px;
+        border-bottom: 2px solid var(--color-border);
+        color: var(--color-muted);
+      }
+
+      tbody td {
+        padding: 10px;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      tbody tr:hover {
+        background: #f9fafb;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo {
+        height: 40px;
+        width: auto;
+      }
+      /* ==============================
+   RESPONSIVE
+================================*/
+      @media (max-width: 768px) {
+        body {
+          padding: 20px;
+        }
+
+        .dashboard {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .filters {
+          flex-direction: column;
+        }
+
+        .filter-group {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- FILTERS -->
+
+    <div class="filters">
+      <div class="filter-group">
+        <label>Employee</label>
+        <select id="employeeFilter" onchange="loadAttendance()">
+          <option value="all">All Employees</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Month</label>
+        <select id="monthFilter" onchange="loadAttendance()">
+          <option value="all">All Months</option>
+          <option value="0">January</option>
+          <option value="1">February</option>
+          <option value="2">March</option>
+          <option value="3">April</option>
+          <option value="4">May</option>
+          <option value="5">June</option>
+          <option value="6">July</option>
+          <option value="7">August</option>
+          <option value="8">September</option>
+          <option value="9">October</option>
+          <option value="10">November</option>
+          <option value="11">December</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="container">
+      <button
+        onclick="exportExcel()"
+        style="
+          margin-bottom: 20px;
+          padding: 10px 15px;
+          background: #28a745;
+          color: white;
+          border: none;
+          border-radius: 5px;
+        "
+      >
+        Export Monthly Excel
+      </button>
+      <button
+        onclick="exportDaily()"
+        style="margin-bottom: 20px; margin-left: 10px; background: #ff9800"
+      >
+        Export Daily Report
+      </button>
+      <div style="margin-bottom: 20px">
+        <input
+          id="newEmployee"
+          placeholder="Enter employee name"
+          style="padding: 10px; border-radius: 6px; border: 1px solid #ccc"
+        />
+        <button onclick="addEmployee()">Add Employee</button>
+      </div>
+      <div class="header">
+        <h2>Admin Attendance Dashboard</h2>
+        <button onclick="loadAttendance()">Refresh</button>
+      </div>
+
+      <h2>Today Dashboard</h2>
+
+      <div class="dashboard">
+        <div class="card" onclick="showEmployees()">
+          <h3>Total Employees</h3>
+          <p id="totalEmployees">0</p>
+        </div>
+
+        <div class="card" onclick="showPresent()">
+          <h3>Present Today</h3>
+          <p id="present">0</p>
+        </div>
+
+        <div class="card" onclick="showCheckedout()">
+          <h3>Checked Out</h3>
+          <p id="checkedOut">0</p>
+        </div>
+
+        <div class="card" onclick="showAbsent()">
+          <h3>Absent</h3>
+          <p id="absent">0</p>
+        </div>
+      </div>
+
+      <!-- RECORDS -->
+
+      <h3 style="margin-top: 30px">Attendance Records</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Date</th>
+            <th>Login</th>
+            <th>Logout</th>
+            <th>Hours</th>
+          </tr>
+        </thead>
+
+        <tbody id="attendanceTable"></tbody>
+      </table>
+    </div>
+
+    <!-- SUMMARY -->
+
+    <h3>Monthly Summary</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Days Worked</th>
+          <th>Total Hours</th>
+        </tr>
+      </thead>
+
+      <tbody id="summaryTable"></tbody>
+    </table>
+
+    <script>
+      let globalData = [];
+
+      async function loadAttendance() {
+        try {
+          let res = await fetch("http://localhost:3000/attendance");
+          let data = await res.json();
+
+          globalData = data;
+
+          populateEmployeeFilter(data);
+          renderAttendance();
+        } catch (err) {
+          alert("Server connection error");
+        }
+      }
+
+      /* =====================
+EMPLOYEE DROPDOWN
+===================== */
+
+      function populateEmployeeFilter(data) {
+        let employees = [...new Set(data.map((a) => a.employee))];
+
+        let select = document.getElementById("employeeFilter");
+
+        if (select.options.length > 1) return;
+
+        employees.forEach((emp) => {
+          let option = document.createElement("option");
+          option.value = emp;
+          option.textContent = emp;
+          select.appendChild(option);
+        });
+      }
+
+      /* =====================
+RENDER TABLE
+===================== */
+
+      function renderAttendance() {
+        let employeeFilter = document.getElementById("employeeFilter").value;
+        let monthFilter = document.getElementById("monthFilter").value;
+
+        let grouped = {};
+
+        globalData.forEach((a) => {
+          let matchEmployee =
+            employeeFilter === "all" || a.employee === employeeFilter;
+
+          let monthMatch = true;
+
+          if (monthFilter !== "all") {
+            monthMatch = new Date(a.date).getMonth() == monthFilter;
+          }
+
+          if (matchEmployee && monthMatch) {
+            if (!grouped[a.date]) grouped[a.date] = [];
+
+            grouped[a.date].push(a);
+          }
+        });
+
+        let table = document.getElementById("attendanceTable");
+
+        table.innerHTML = "";
+
+        Object.keys(grouped)
+          .sort()
+          .reverse()
+          .forEach((date, i) => {
+            let className = "day_" + i;
+
+            table.innerHTML += `
+<tr onclick="toggleDay('${className}')" style="background:#eef2ff;font-weight:bold;cursor:pointer;">
+<td colspan="5">▶ ${date}</td>
+</tr>
+`;
+
+            grouped[date].forEach((a) => {
+              table.innerHTML += `
+<tr class="${className}" style="display:none;">
+<td>${a.employee}</td>
+<td>${a.date}</td>
+<td>${a.login || "-"}</td>
+<td>${a.logout || "-"}</td>
+<td>${a.hours || 0}</td>
+</tr>
+`;
+            });
+          });
+      }
+
+      /* =====================
+SUMMARY
+===================== */
+
+      function toggleDay(className) {
+        let rows = document.querySelectorAll("." + className);
+
+        rows.forEach((row) => {
+          if (row.style.display === "none") {
+            row.style.display = "table-row";
+          } else {
+            row.style.display = "none";
+          }
+        });
+      }
+
+      function addEmployee() {
+        let name = document.getElementById("newEmployee").value;
+
+        fetch("http://localhost:3000/employees", {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({ name }),
+        }).then(() => {
+          alert("Employee Added");
+
+          document.getElementById("newEmployee").value = "";
+        });
+      }
+
+      function renderSummary(records) {
+        let summary = {};
+
+        records.forEach((r) => {
+          if (!summary[r.employee]) {
+            summary[r.employee] = {
+              days: 0,
+              hours: 0,
+            };
+          }
+
+          summary[r.employee].days++;
+
+          summary[r.employee].hours += Number(r.hours) || 0;
+        });
+
+        let table = document.getElementById("summaryTable");
+        table.innerHTML = "";
+
+        Object.keys(summary).forEach((emp) => {
+          table.innerHTML += `
+
+<tr>
+<td>${emp}</td>
+<td>${summary[emp].days}</td>
+<td>${summary[emp].hours.toFixed(2)}</td>
+</tr>
+
+`;
+        });
+      }
+
+      function exportDaily() {
+        let today = new Date().toISOString().split("T")[0];
+
+        let todays = globalData.filter((a) => a.date === today);
+
+        let ws = XLSX.utils.json_to_sheet(todays);
+
+        let wb = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(wb, ws, "Daily Report");
+
+        XLSX.writeFile(wb, "daily-attendance.xlsx");
+      }
+
+      function exportExcel() {
+        fetch("http://localhost:3000/attendance")
+          .then((res) => res.json())
+          .then((data) => {
+            let employeeSummary = {};
+
+            data.forEach((a) => {
+              if (!employeeSummary[a.employee]) {
+                employeeSummary[a.employee] = {
+                  records: [],
+                  days: 0,
+                  hours: 0,
+                };
+              }
+
+              employeeSummary[a.employee].records.push(a);
+              employeeSummary[a.employee].days++;
+
+              if (a.hours) {
+                employeeSummary[a.employee].hours += parseFloat(a.hours);
+              }
+            });
+
+            let rows = [];
+
+            for (let emp in employeeSummary) {
+              let empData = employeeSummary[emp];
+
+              rows.push({
+                Employee: emp,
+                Date: "",
+                Login: "",
+                Logout: "",
+                Hours: "",
+                DaysWorked: empData.days,
+                MonthlyHours: empData.hours.toFixed(2),
+              });
+
+              empData.records.forEach((r) => {
+                rows.push({
+                  Employee: "",
+                  Date: r.date,
+                  Login: r.login,
+                  Logout: r.logout,
+                  Hours: r.hours,
+                  DaysWorked: "",
+                  MonthlyHours: "",
+                });
+              });
+
+              rows.push({}); // empty line
+            }
+
+            let ws = XLSX.utils.json_to_sheet(rows);
+
+            let wb = XLSX.utils.book_new();
+
+            XLSX.utils.book_append_sheet(wb, ws, "Attendance");
+
+            XLSX.writeFile(wb, "attendance-report.xlsx");
+          });
+      }
+
+      async function loadDashboard() {
+        let res = await fetch("http://localhost:3000/dashboard");
+
+        let data = await res.json();
+
+        document.getElementById("totalEmployees").innerText =
+          data.totalEmployees;
+        document.getElementById("present").innerText = data.present;
+        document.getElementById("checkedOut").innerText = data.checkedOut;
+        document.getElementById("absent").innerText = data.absent;
+      }
+
+      /* =====================
+FILTER FUNCTIONS (Dashboard Cards)
+===================== */
+
+      function showEmployees() {
+        fetch("http://localhost:3000/employees")
+          .then((res) => res.json())
+          .then((data) => {
+            let table = document.getElementById("attendanceTable");
+            table.innerHTML = "";
+
+            data.forEach((emp) => {
+              table.innerHTML += `
+
+<tr>
+<td>${emp.name}</td>
+<td colspan="3">Employee</td>
+<td>
+<button onclick="deleteEmployee('${emp._id}')">Delete</button>
+</td>
+</tr>
+
+`;
+            });
+          });
+      }
+
+      function deleteEmployee(id) {
+        fetch("http://localhost:3000/employees/" + id, {
+          method: "DELETE",
+        }).then(() => {
+          alert("Employee Deleted");
+
+          showEmployees();
+        });
+      }
+
+      function showPresent() {
+        // Filter to show only today's attendance (present)
+        let today = new Date().toISOString().split("T")[0];
+        let table = document.getElementById("attendanceTable");
+        table.innerHTML = "";
+
+        let todayRecords = globalData.filter((a) => a.date === today);
+
+        todayRecords.forEach((a) => {
+          table.innerHTML += `
+            <tr>
+              <td>${a.employee}</td>
+              <td>${a.date}</td>
+              <td>${a.login || "-"}</td>
+              <td>${a.logout || "-"}</td>
+              <td>${a.hours || 0}</td>
+            </tr>
+          `;
+        });
+
+        // Also update summary for today
+        renderSummary(todayRecords);
+      }
+
+      function showCheckedout() {
+        // Filter to show only checked out (has logout time) for today
+        let today = new Date().toISOString().split("T")[0];
+        let table = document.getElementById("attendanceTable");
+        table.innerHTML = "";
+
+        let checkedOutRecords = globalData.filter(
+          (a) => a.date === today && a.logout,
+        );
+
+        checkedOutRecords.forEach((a) => {
+          table.innerHTML += `
+            <tr>
+              <td>${a.employee}</td>
+              <td>${a.date}</td>
+              <td>${a.login || "-"}</td>
+              <td>${a.logout || "-"}</td>
+              <td>${a.hours || 0}</td>
+            </tr>
+          `;
+        });
+
+        renderSummary(checkedOutRecords);
+      }
+
+      function showAbsent() {
+        // Show all employees from Employee collection who are not present today
+        fetch("http://localhost:3000/employees")
+          .then((res) => res.json())
+          .then((employees) => {
+            let today = new Date().toISOString().split("T")[0];
+            let presentEmployees = globalData
+              .filter((a) => a.date === today)
+              .map((a) => a.employee);
+
+            let table = document.getElementById("attendanceTable");
+            table.innerHTML = "";
+
+            employees.forEach((emp) => {
+              if (!presentEmployees.includes(emp.name)) {
+                table.innerHTML += `
+                  <tr>
+                    <td>${emp.name}</td>
+                    <td>${today}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>0</td>
+                  </tr>
+                `;
+              }
+            });
+
+            // Clear summary since showing absent
+            document.getElementById("summaryTable").innerHTML = "";
+          });
+      }
+
+      loadDashboard();
+
+      setInterval(loadDashboard, 5000);
+
+      /* INIT */
+
+      loadAttendance();
+
+      /* Service Worker Registration */
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("attendance-crm/sw.js");
+      }
+    </script>
+  </body>
+</html>

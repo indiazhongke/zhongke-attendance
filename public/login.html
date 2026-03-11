@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Employee Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="attendance-crm/manifest.json">
+<link rel="icon" type="icon" href="favicon.ico">
+<style>
+
+/* Modern Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:'Poppins', sans-serif;
+  background:linear-gradient(135deg,#eef2f7,#d9e4f5);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+/* Login Box */
+.box{
+  background:white;
+  padding:35px;
+  border-radius:14px;
+  width:320px;
+  box-shadow:0 15px 35px rgba(0,0,0,0.1);
+  transition:0.3s;
+}
+
+.box:hover{
+  transform:translateY(-4px);
+  box-shadow:0 20px 45px rgba(0,0,0,0.15);
+}
+
+/* Inputs */
+input{
+  width:100%;
+  padding:12px 14px;
+  margin-top:12px;
+  border:1px solid #dcdfe6;
+  border-radius:8px;
+  font-size:14px;
+  outline:none;
+  transition:all .25s ease;
+}
+
+/* Input focus */
+input:focus{
+  border-color:#4a6cf7;
+  box-shadow:0 0 0 3px rgba(74,108,247,0.15);
+}
+
+/* Button */
+button{
+  width:100%;
+  padding:12px;
+  margin-top:18px;
+  border:none;
+  border-radius:8px;
+  background:linear-gradient(135deg,#007bff,#4a6cf7);
+  color:white;
+  font-size:15px;
+  font-weight:500;
+  cursor:pointer;
+  transition:all .25s ease;
+}
+
+/* Button hover */
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 18px rgba(0,123,255,0.3);
+}
+
+/* Button click */
+button:active{
+  transform:translateY(0);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h3>Employee Login</h3>
+
+<input id="employeeName" placeholder="Enter Name">
+
+<button onclick="login()">Login</button>
+
+</div>
+
+<script>
+
+  // auto login if already logged in
+let employee = localStorage.getItem("employee")
+
+if(employee){
+window.location = "attendance.html"
+}
+
+function login(){
+
+let name = document.getElementById("employeeName").value
+
+if(!name){
+alert("Enter your name")
+return
+}
+
+localStorage.setItem("employee", name)
+
+window.location = "attendance.html"
+
+}
+
+if("serviceWorker" in navigator){
+
+navigator.serviceWorker.register("attendance-crm/sw.js")
+
+}
+
+</script>
+
+</body>
+</html>
+
+
